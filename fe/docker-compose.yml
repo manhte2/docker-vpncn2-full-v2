@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  fe_vpncn2:
+    build:
+      context: .  # Sử dụng thư mục hiện tại để build Dockerfile
+      dockerfile: Dockerfile
+    container_name: fe  # Đặt tên cho container
+    networks:
+      - shared_nw
+    ports: 
+      - "3000:3000"
+    volumes:
+      - .:/app  # Mount thư mục hiện tại vào container để hỗ trợ hot-reload
+      - /app/node_modules  # Tránh ghi đè thư mục node_modules trong container
+    restart: always  # Tự động khởi động lại container nếu bị dừng
+
+networks:
+  shared_nw:
+    external: true

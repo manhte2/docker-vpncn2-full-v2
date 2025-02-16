@@ -1,0 +1,27 @@
+#Docker vpncn2.net 250131
+
+cd vpncn2.net
+sudo chown -R www-data:www-data ./wordpress
+sudo chmod -R 755 ./wordpress
+### Remark:
+ ## 1. **Check .nginx/vpncn2.net.conf file and ensure that only port 80 configuration, remove all 443 ###
+## 2. Configure DNS record for domain vpncn2.net point to new IP
+
+docker-compose up -d
+docker exec -it certbot certbot certonly --webroot -w /var/www/certbot -d vpncn2.net --email admin@vpncn2.net --agree-tos --non-interactive
+
+cp nginx/vpncn2.net.conf.ssl nginx/vpncn2.net.conf
+docker restart wordpress_nginx
+
+
+##TROUBLE SHOOOTING
+docker-compose logs certbot
+docker-compose exec certbot cat /var/log/letsencrypt/letsencrypt.log
+
+docker-compose exec wordpress_nginx cat /etc/nginx/conf.d/vpncn2.net.conf
+
+docker rm -f $(docker ps -aq)
+docker rmi -f $(docker images -aq)
+docker volume rm $(docker volume ls -q)
+docker network rm $(docker network ls -q)
+

@@ -1,0 +1,39 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redisvpncn2
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - shared_nw
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  bevpncn2:
+    build:
+      context: .  # Sử dụng thư mục hiện tại để build Dockerfile
+      dockerfile: Dockerfile
+    container_name: bevpncn2  # Đặt tên cho container
+    environment:  
+      - REDIS_HOST=redisvpncn2
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    networks:
+      - shared_nw
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app  # Mount thư mục hiện tại vào container để hỗ trợ hot-reload
+      - /app/node_modules  # Tránh ghi đè thư mục node_modules trong container
+        #      - ./dist:/var/www/vpncn2/be/dist
+    restart: always  # Tự động khởi động lại container nếu bị dừng
+
+volumes:
+  redis_data:
+
+networks: 
+  shared_nw:
+    external: true #su dung mang chung vs nginx

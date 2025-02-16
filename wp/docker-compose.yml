@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: wp_db
+    networks:
+      - shared_nw
+    restart: always
+    env_file: .env
+    volumes:
+      - ./db/db_wordpress_250103.sql:/docker-entrypoint-initdb.d/backup.sql
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  wordpress:
+    build: ./php
+    container_name: wp_app
+    networks:
+      - shared_nw
+    restart: always
+    env_file: .env
+    volumes:
+      - ./wordpress:/var/www/html
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    container_name: wp_nginx
+    networks: 
+      - shared_nw
+    volumes:
+      - ./nginx/vpncn2.net.conf:/etc/nginx/conf.d/vpncn2.net.conf
+      - ./wordpress:/var/www/html
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt  # Mount thư mục chứa chứng chỉ SSL  
+      - ./fe/dist:/var/www/vpncn2/fe/
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8888:8888"
+      - "8443:8443"
+    depends_on:
+      - wordpress
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot    # Thư mục chứa challenge của Certbot
+      - ./certbot/conf:/etc/letsencrypt   # Thư mục chứa chứng chỉ SSL
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+
+volumes:
+  db_data:
+
+networks:
+  shared_nw:
+    external: true
