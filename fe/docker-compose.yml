@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  fe_vpncn2:
+  fevpncn2:
     build:
       context: .  # Sử dụng thư mục hiện tại để build Dockerfile
       dockerfile: Dockerfile
-    container_name: fe  # Đặt tên cho container
+    container_name: fevpncn2  # Đặt tên cho container
     networks:
       - shared_nw
     ports: 
